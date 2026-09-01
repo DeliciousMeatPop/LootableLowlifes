@@ -1,0 +1,13 @@
+{
+  "Name": "Lootable Lowlifes",
+  "Description": "Slain enemies drop persistent, keepable loot at their ragdoll: Florin pouches, rings, crystal shards, and player-storable weapons. Drop rates and item pools are configurable via Item_LootTables.json.",
+  "Author": "DeliciousMeatPop",
+  "ModVersion": "1.0.0",
+  "GameVersion": "1.0.0",
+  "Thumbnail": "",
+  "Tags": [
+    "Code",
+    "Loot",
+    "Gameplay"
+  ]
+}

@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Lootable Lowlifes - Blade & Sorcery (1.0+) loot drop mod.
+
+    Set the BSInstallDir property (or the BLADE_AND_SORCERY_DIR environment
+    variable) to your game install so the ThunderRoad / Unity assemblies resolve.
+    Example (Windows):
+      dotnet build src/BanditLootMod.csproj -p:BSInstallDir="C:\Program Files (x86)\Steam\steamapps\common\Blade & Sorcery"
+  -->
+
+  <PropertyGroup>
+    <!-- Blade & Sorcery ships against .NET Standard 2.1 (Unity Mono/IL2CPP). -->
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>LootableLowlifes</AssemblyName>
+    <RootNamespace>LootableLowlifes</RootNamespace>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Nullable>disable</Nullable>
+    <!-- Game DLLs are provided by the install; do not copy or publish them. -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <!-- Resolve the managed assembly directory from a property or env var. -->
+  <PropertyGroup>
+    <BSInstallDir Condition="'$(BSInstallDir)' == ''">$(BLADE_AND_SORCERY_DIR)</BSInstallDir>
+    <BSManagedDir>$(BSInstallDir)\BladeAndSorcery_Data\Managed</BSManagedDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="LootDropModule.cs" />
+    <Compile Include="LootTable.cs" />
+    <Compile Include="Config\DropConfig.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="ThunderRoad">
+      <HintPath>$(BSManagedDir)\ThunderRoad.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(BSManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(BSManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(BSManagedDir)\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

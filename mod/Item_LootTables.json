@@ -1,0 +1,41 @@
+{
+  "enabled": true,
+  "globalDropChance": 0.85,
+  "minDrops": 1,
+  "maxDrops": 3,
+  "spawnHeightOffset": 0.15,
+  "scatterRadius": 0.25,
+  "popForce": 1.5,
+  "popScatterForce": 0.6,
+  "tierWeights": {
+    "common": 70.0,
+    "rare": 25.0,
+    "legendary": 5.0
+  },
+  "tiers": [
+    {
+      "name": "common",
+      "entries": [
+        { "itemId": "Currency",   "displayName": "Florin Pouch (Small)", "weight": 60.0, "minQuantity": 1, "maxQuantity": 1 },
+        { "itemId": "RingSilver", "displayName": "Silver Ring",          "weight": 25.0, "minQuantity": 1, "maxQuantity": 1 },
+        { "itemId": "Apple",      "displayName": "Apple",                "weight": 15.0, "minQuantity": 1, "maxQuantity": 2 }
+      ]
+    },
+    {
+      "name": "rare",
+      "entries": [
+        { "itemId": "Currency",     "displayName": "Florin Pouch (Large)", "weight": 40.0, "minQuantity": 2, "maxQuantity": 4 },
+        { "itemId": "RingGold",     "displayName": "Gold Ring",            "weight": 30.0, "minQuantity": 1, "maxQuantity": 1 },
+        { "itemId": "CrystalShard", "displayName": "Crystal Shard",        "weight": 30.0, "minQuantity": 1, "maxQuantity": 2 }
+      ]
+    },
+    {
+      "name": "legendary",
+      "entries": [
+        { "itemId": "WeaponSwordShortCommon", "displayName": "Short Sword", "weight": 50.0, "minQuantity": 1, "maxQuantity": 1 },
+        { "itemId": "WeaponAxe1H",            "displayName": "War Axe",     "weight": 30.0, "minQuantity": 1, "maxQuantity": 1 },
+        { "itemId": "WeaponMace1H",           "displayName": "Mace",        "weight": 20.0, "minQuantity": 1, "maxQuantity": 1 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+*.dll
+*.pdb
+*.mdb
+*.user
+*.suo
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.csproj.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+packages/
+*.nupkg
+
+# Do NOT ignore the shipped mod DLL if you place a built copy under mod/
+!mod/*.dll
