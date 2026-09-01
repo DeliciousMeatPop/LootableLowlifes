@@ -29,7 +29,7 @@
     ./tools/List-ItemIds.ps1 -GameDir "D:\...\Blade & Sorcery" -Filter sword | Sort-Object Id
 #>
 param(
-    [string]$GameDir = "C:\Program Files (x86)\Steam\steamapps\common\Blade & Sorcery",
+    [string]$GameDir = "D:\SteamLibrary\steamapps\common\Blade & Sorcery",
     [string]$Filter = "",
     [bool]$IncludeMods = $true
 )
