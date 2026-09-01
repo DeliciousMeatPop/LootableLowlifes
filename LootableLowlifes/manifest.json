@@ -3,7 +3,7 @@
   "Description": "Enemies carry a lootable coin pouch on the hip that you can grab off the corpse and keep. Pure data mod (Containers + LootTables + Valuable items) built on base-game assets — no DLL and no dependency on any other mod. Tiered payouts scale with enemy rank.",
   "Author": "DeliciousMeatPop",
   "ModVersion": "1.0.0",
-  "GameVersion": "1.3.1.260730005",
+  "GameVersion": "1.0.0.0",
   "Thumbnail": "",
   "Tags": [
     "Loot",
