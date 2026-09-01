@@ -1,0 +1,17 @@
+{
+  "$type": "ThunderRoad.ContainerData, ThunderRoad",
+  "id": "ScavengerHunter",
+  "version": 1,
+  "containerContents": [
+    {
+      "$type": "ThunderRoad.TableContent, ThunderRoad",
+      "quantity": 1,
+      "state": {
+        "$type": "ThunderRoad.ContentStateHolder, ThunderRoad",
+        "holderName": "HipsLeft"
+      },
+      "customDataList": [],
+      "referenceID": "LLNpcLootT1"
+    }
+  ]
+}

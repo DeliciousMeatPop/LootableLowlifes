@@ -1,13 +1,13 @@
 {
   "Name": "Lootable Lowlifes",
-  "Description": "Slain enemies drop persistent, keepable loot at their ragdoll: Florin pouches, rings, crystal shards, and player-storable weapons. Drop rates and item pools are configurable via Item_LootTables.json.",
+  "Description": "Enemies carry a lootable coin pouch on the hip that you can grab off the corpse and keep. Pure data mod (Containers + LootTables + Valuable items) built on base-game assets — no DLL and no dependency on any other mod. Tiered payouts scale with enemy rank.",
   "Author": "DeliciousMeatPop",
   "ModVersion": "1.0.0",
   "GameVersion": "1.0.0",
   "Thumbnail": "",
   "Tags": [
-    "Code",
     "Loot",
-    "Gameplay"
+    "Gameplay",
+    "Economy"
   ]
 }
