@@ -1,10 +1,11 @@
 name: Build Mod
 
+# Manual-only: this repo is built locally against the game's own assemblies
+# (see README / libs/README.md). This workflow does NOT run on push/PR so it
+# never fails in the cloud where the proprietary DLLs are unavailable.
+# To enable cloud builds later, set the BS_ASSEMBLIES_URL secret and add the
+# push/pull_request/tags triggers back.
 on:
-  push:
-    branches: ["**"]
-    tags: ["v*"]
-  pull_request:
   workflow_dispatch:
 
 permissions:
