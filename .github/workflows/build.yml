@@ -1,10 +1,11 @@
 name: Build Mod
 
+# Manual-only: this repo is built locally against the game's own assemblies
+# (see README / libs/README.md). This workflow does NOT run on push/PR so it
+# never fails in the cloud where the proprietary DLLs are unavailable.
+# To enable cloud builds later, set the BS_ASSEMBLIES_URL secret and add the
+# push/pull_request/tags triggers back.
 on:
-  push:
-    branches: ["**"]
-    tags: ["v*"]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -32,11 +33,25 @@ jobs:
           BS_ASSEMBLIES_URL: ${{ secrets.BS_ASSEMBLIES_URL }}
         run: |
           set -euo pipefail
-          if [ -z "${BS_ASSEMBLIES_URL}" ]; then
-            echo "::error::Secret BS_ASSEMBLIES_URL is not set. It must point to a" \
-                 "private .zip containing ThunderRoad.dll, UnityEngine.dll," \
-                 "UnityEngine.CoreModule.dll and UnityEngine.PhysicsModule.dll." \
-                 "See libs/README.md."
+          required=(ThunderRoad.dll UnityEngine.dll UnityEngine.CoreModule.dll UnityEngine.PhysicsModule.dll)
+
+          # If libs/ is already populated (e.g. a local `act` run with the DLLs
+          # bind-mounted from your game install), skip the download entirely.
+          have_all=1
+          for dll in "${required[@]}"; do
+            [ -f "libs/$dll" ] || have_all=0
+          done
+          if [ "$have_all" -eq 1 ]; then
+            echo "All reference assemblies already present in libs/; skipping download."
+            exit 0
+          fi
+
+          if [ -z "${BS_ASSEMBLIES_URL:-}" ]; then
+            echo "::error::libs/ is missing one or more reference assemblies and the" \
+                 "BS_ASSEMBLIES_URL secret is not set. Either provide the DLLs in" \
+                 "libs/ (local runs) or set the secret to a private .zip containing" \
+                 "ThunderRoad.dll, UnityEngine.dll, UnityEngine.CoreModule.dll and" \
+                 "UnityEngine.PhysicsModule.dll. See libs/README.md."
             exit 1
           fi
 
