@@ -1,103 +1,114 @@
 # Lootable Lowlifes
 
-A C# scripted mod for **Blade & Sorcery 1.0+** (Crystal Hunt / Sandbox). When an
-enemy dies, it drops **persistent, keepable** loot — Florin pouches, rings,
-crystal shards, and player-storable weapons — right at the ragdoll, bypassing the
-default despawning/unstoreable behaviour of NPC-held items.
+A **standalone, code-free** loot mod for **Blade & Sorcery 1.0+** (Crystal Hunt /
+Sandbox). Every enemy carries a **lootable coin pouch on their hip** that you can
+grab off the body and keep — it converts to Gold when stored, just like the
+game's own valuables. Payouts scale by enemy rank across four tiers.
 
-Because every drop is a *fresh copy* spawned from the game Catalog (not the NPC's
-own non-storable gear), the items survive, can be picked up, holstered, and kept.
+**No DLL. No dependency on any other mod.** The whole thing is ThunderRoad
+catalog JSON built on base-game assets.
 
-## How it works
+## How it works (the native ThunderRoad loot chain)
 
 ```
-[Enemy Killed]
-      │
-      ▼
-[EventManager.onCreatureKill]
-      │
-      ├─► Validate  (eventTime == OnEnd, creature != player, ragdoll exists)
-      ├─► Roll      (global drop chance → weighted tier → weighted item → quantity)
-      └─► Spawn     Catalog.GetData<ItemData>(id).SpawnAsync(...)
-                     ├─ position: torso/pelvis + height offset + scatter
-                     └─ physics : gentle upward "pop" impulse
+Creature (NPC)
+   └─► ContainerData   (override, same id as the base creature)
+         └─► TableContent in holder "HipsLeft"
+               └─► LootTable  (weighted, tiered)
+                     └─► ItemData  (coin pouch → base prefab Bas.Item.Valuable.LootBag)
 ```
 
-- **`src/LootDropModule.cs`** — the `ThunderScript`. Subscribes to
-  `EventManager.onCreatureKill` in `ScriptLoaded()` and detaches in
-  `ScriptUnload()` to avoid dangling handlers across map loads. Handles entity
-  filtering, positioning, async spawning, and the pop impulse.
-- **`src/LootTable.cs`** — stateless weighted-random selection (tier → item →
-  quantity), driven entirely by config.
-- **`src/Config/DropConfig.cs`** — the serializable config model plus built-in
-  defaults so the mod works even with no JSON present.
+Nothing runs on death — the pouch is a real held item on the living NPC, so the
+game handles persistence and looting for free. Killing the enemy just leaves the
+pouch on the ragdoll for you to take.
 
-## Configuring loot (no recompile needed)
+### Why it needs no other mod
 
-Edit **`mod/Item_LootTables.json`**. It deserializes straight into `DropConfig`
-via Unity's `JsonUtility`, so the JSON shape must match the field names exactly.
-
-| Field | Meaning |
-|-------|---------|
-| `enabled` | Master switch. `false` installs no hooks. |
-| `globalDropChance` | 0..1 chance a kill drops anything. |
-| `minDrops` / `maxDrops` | Range of item stacks per drop event. |
-| `spawnHeightOffset` | Metres above the ragdoll part to spawn. |
-| `scatterRadius` | Horizontal spread so drops don't clip/stack. |
-| `popForce` / `popScatterForce` | Upward + random impulse strength. |
-| `tierWeights` | Relative odds of `common` / `rare` / `legendary`. |
-| `tiers[]` | Named tiers, each a weighted pool of `entries`. |
-| `entries[].itemId` | The Catalog `ItemData` id to spawn. |
-| `entries[].weight` | Relative odds within its tier. |
-| `entries[].minQuantity` / `maxQuantity` | Stack count range. |
-
-> **Item IDs** must match real Catalog ids from the game version / mods you run.
-> The defaults use plausible base-game ids (`Currency`, `RingSilver`, `RingGold`,
-> `CrystalShard`, `WeaponSwordShortCommon`, `WeaponAxe1H`, `WeaponMace1H`,
-> `Apple`). If an id doesn't exist in your install the drop is skipped and a
-> warning is logged — verify against your `BladeAndSorcery_Data` catalog and
-> adjust as needed.
-
-## Building
-
-Requires the .NET SDK and a Blade & Sorcery install for the game assemblies.
-
-```bash
-dotnet build src/BanditLootMod.csproj -c Release \
-  -p:BSInstallDir="C:\Program Files (x86)\Steam\steamapps\common\Blade & Sorcery"
-```
-
-Or set the `BLADE_AND_SORCERY_DIR` environment variable instead of passing
-`BSInstallDir`. The project references (but does not copy) `ThunderRoad.dll` and
-the `UnityEngine.*` modules from `<install>\BladeAndSorcery_Data\Managed`.
-
-## Installing
-
-1. Build `LootableLowlifes.dll`.
-2. Create a mod folder:
-   `...\BladeAndSorcery\BladeAndSorcery_Data\StreamingAssets\Mods\LootableLowlifes\`
-3. Copy into it:
-   - `LootableLowlifes.dll` (build output)
-   - `mod/manifest.json`
-   - `mod/Item_LootTables.json`
-4. Launch the game. ThunderRoad auto-loads the `ThunderScript` on startup.
-
-## Notes & safety
-
-- All kill-handling is wrapped in try/catch so a loot error never interrupts the
-  game's death pipeline.
-- Player deaths are ignored; only fully-dead (`OnEnd`) non-player creatures drop.
-- Spawns are asynchronous (`SpawnAsync`) to avoid frame drops during combat.
+The coin pouch items point at the **base-game** prefab `Bas.Item.Valuable.LootBag`
+(the `Bas.` prefix = base game), so the mod ships no art and references no other
+mod's content. This is the same technique the Gilded Goons mod uses — we just do
+it self-contained.
 
 ## Repository layout
 
 ```
-src/
-  BanditLootMod.csproj   # build config + game assembly references
-  LootDropModule.cs      # ThunderScript & event lifecycle
-  LootTable.cs           # weighted probability engine
-  Config/DropConfig.cs   # config model + defaults
-mod/
-  manifest.json          # ThunderRoad mod manifest
-  Item_LootTables.json   # externalised, tunable loot tables
+mod/                         # <-- this IS the installable mod folder
+  manifest.json
+  Items/        Item_LLPouch*.json        # 6 coin pouches (8g … 220g)
+  LootTables/   LootTable_LLNpcLootT*.json # 4 tiers (T0…T3)
+  Containers/   Container_<Creature>.json  # 31 enemy archetype overrides
+tools/
+  gen-catalog.py     # regenerates everything in mod/ (edit values here)
+  List-ItemIds.ps1   # scans your install/mods for real item IDs
+src/                 # OPTIONAL alternative: a C# ThunderScript drop-on-death
+                     # mod. Superseded by the native approach above; see below.
 ```
+
+## Installing
+
+1. Copy the **contents** of `mod/` into a new folder:
+   `…\Blade & Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\LootableLowlifes\`
+   (so you end up with `…\Mods\LootableLowlifes\manifest.json`, `…\Items\`, etc.)
+2. Launch. Kill an enemy, grab the pouch off their hip, store it to bank the gold.
+
+No build step. Editing the JSON just needs a game relaunch.
+
+## Tuning
+
+Edit `tools/gen-catalog.py` and re-run it to regenerate all the JSON:
+
+```bash
+python3 tools/gen-catalog.py
+```
+
+- **Pouch values** — the `POUCHES` list (id, display name, gold value).
+- **Drop odds** — the `TABLES_DEF` weights (higher weight = more likely).
+- **Which enemies drop what** — the `CREATURE_TIERS` map (archetype → tier).
+
+You can also hand-edit any single JSON file directly; the generator is just for
+bulk consistency.
+
+### Adding weapon / ring drops
+
+Loot tables can drop anything, not just pouches. Add a `Drop` entry referencing
+any valid item id (find real ids with `tools/List-ItemIds.ps1`). Note: pointing
+at a *modded* item id makes that mod a dependency — stick to base-game ids to
+stay standalone.
+
+## Enemies covered
+
+31 base archetypes across Soldiers, Cultists, Scavengers, and Tribals, tiered
+T0 (serfs, muggers, trackers) → T3 (bishops, champions, highborn, magistrates).
+See `CREATURE_TIERS` in the generator for the exact mapping.
+
+## Caveat / verifying
+
+Container overrides replace the base creature's container by id. This is the
+same mechanism Gilded Goons uses and it does not disarm enemies (weapon loadouts
+come from the creature's equipment, not this container). If you ever see an enemy
+type spawn without its expected gear, tell me which archetype and we'll adjust
+that container.
+
+Item ids are prefixed `LL…` and loot-table ids `LLNpcLoot…` to avoid clashing
+with other mods. Container ids intentionally match base creatures (that's how the
+override attaches) — so running this **alongside** Gilded Goons means whichever
+loads last wins for a given enemy. Run one or the other for predictable results.
+
+---
+
+## Optional: the C# drop-on-death mod (`src/`)
+
+The repo also contains an earlier **ThunderScript** implementation that hooks
+`EventManager.onCreatureKill` and spawns items at the ragdoll in code. The native
+data mod above supersedes it (simpler, more update-proof, no despawn concerns),
+so you don't need it. It's kept for reference / as an alternative if you want
+code-driven drop logic.
+
+Build it (needs the game assemblies — see `libs/README.md`):
+
+```bash
+dotnet build src/BanditLootMod.csproj -c Release
+```
+
+Do **not** install both the DLL and the data mod at once, or enemies will get
+loot from both systems.
