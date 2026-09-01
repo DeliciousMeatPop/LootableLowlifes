@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
 using ThunderRoad;
 using UnityEngine;
 
@@ -121,7 +122,7 @@ namespace LootableLowlifes
 
         private void SpawnDrop(ResolvedDrop drop, Vector3 origin)
         {
-            ItemData itemData = Catalog.GetData<ItemData>(drop.itemId, logError: true);
+            ItemData itemData = Catalog.GetData<ItemData>(drop.itemId);
             if (itemData == null)
             {
                 Debug.LogWarning($"[LootableLowlifes] Unknown item id '{drop.itemId}' ({drop.displayName}); skipping.");
@@ -180,7 +181,7 @@ namespace LootableLowlifes
                     if (File.Exists(path))
                     {
                         string json = File.ReadAllText(path);
-                        DropConfig loaded = JsonUtility.FromJson<DropConfig>(json);
+                        DropConfig loaded = JsonConvert.DeserializeObject<DropConfig>(json);
                         if (loaded != null)
                         {
                             Debug.Log("[LootableLowlifes] Loaded loot tables from " + path);
