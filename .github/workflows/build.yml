@@ -1,0 +1,95 @@
+name: Build Mod
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed only for the release step on tag pushes
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      # The ThunderRoad / UnityEngine assemblies are proprietary and cannot live
+      # in the repo. CI pulls them from a private archive whose URL is stored in
+      # the BS_ASSEMBLIES_URL secret. The archive must be a .zip containing (at
+      # any depth) the four DLLs the csproj references.
+      - name: Restore game reference assemblies
+        env:
+          BS_ASSEMBLIES_URL: ${{ secrets.BS_ASSEMBLIES_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BS_ASSEMBLIES_URL}" ]; then
+            echo "::error::Secret BS_ASSEMBLIES_URL is not set. It must point to a" \
+                 "private .zip containing ThunderRoad.dll, UnityEngine.dll," \
+                 "UnityEngine.CoreModule.dll and UnityEngine.PhysicsModule.dll." \
+                 "See libs/README.md."
+            exit 1
+          fi
+
+          mkdir -p libs _bs_dl
+          echo "Downloading reference assemblies..."
+          curl -fSL "${BS_ASSEMBLIES_URL}" -o _bs_dl/assemblies.zip
+          unzip -o -q _bs_dl/assemblies.zip -d _bs_dl/extracted
+
+          required=(ThunderRoad.dll UnityEngine.dll UnityEngine.CoreModule.dll UnityEngine.PhysicsModule.dll)
+          missing=0
+          for dll in "${required[@]}"; do
+            found="$(find _bs_dl/extracted -type f -name "$dll" | head -n1 || true)"
+            if [ -z "$found" ]; then
+              echo "::error::Required assembly '$dll' not found in the archive."
+              missing=1
+            else
+              cp "$found" "libs/$dll"
+              echo "  ok: $dll"
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+          rm -rf _bs_dl
+
+      - name: Build (Release)
+        run: dotnet build src/BanditLootMod.csproj -c Release -p:BSInstallDir=
+
+      - name: Stage mod package
+        run: |
+          set -euo pipefail
+          dll="$(find src -name LootableLowlifes.dll -path '*Release*' | head -n1)"
+          if [ -z "$dll" ]; then echo "::error::Build output DLL not found."; exit 1; fi
+          mkdir -p dist/LootableLowlifes
+          cp "$dll" dist/LootableLowlifes/
+          cp mod/manifest.json mod/Item_LootTables.json dist/LootableLowlifes/
+          echo "Packaged:"; ls -l dist/LootableLowlifes
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LootableLowlifes-mod
+          path: dist/LootableLowlifes/**
+          if-no-files-found: error
+
+      # On a version tag (e.g. v1.0.0), publish a zipped, drop-in mod folder.
+      - name: Package release zip
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cd dist
+          zip -r "LootableLowlifes-${GITHUB_REF_NAME}.zip" LootableLowlifes
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/LootableLowlifes-*.zip
+          generate_release_notes: true

@@ -23,3 +23,7 @@ packages/
 
 # Do NOT ignore the shipped mod DLL if you place a built copy under mod/
 !mod/*.dll
+
+# Proprietary game reference assemblies — never commit these
+libs/*
+!libs/README.md

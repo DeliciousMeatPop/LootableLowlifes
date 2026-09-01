@@ -3,10 +3,19 @@
   <!--
     Lootable Lowlifes - Blade & Sorcery (1.0+) loot drop mod.
 
-    Set the BSInstallDir property (or the BLADE_AND_SORCERY_DIR environment
-    variable) to your game install so the ThunderRoad / Unity assemblies resolve.
-    Example (Windows):
-      dotnet build src/BanditLootMod.csproj -p:BSInstallDir="C:\Program Files (x86)\Steam\steamapps\common\Blade & Sorcery"
+    The game assemblies (ThunderRoad.dll, UnityEngine.*.dll) ship only with the
+    game and must NOT be committed to the repo. Provide them one of two ways:
+
+    1. Point at your install (local dev):
+         dotnet build src/BanditLootMod.csproj \
+           -p:BSInstallDir="C:\Program Files (x86)\Steam\steamapps\common\Blade & Sorcery"
+       (or set the BLADE_AND_SORCERY_DIR environment variable)
+
+    2. Drop the DLLs into the git-ignored ./libs folder at the repo root.
+       This is the fallback used when no install dir is set, and is how CI
+       supplies the assemblies. Required files:
+         ThunderRoad.dll, UnityEngine.dll,
+         UnityEngine.CoreModule.dll, UnityEngine.PhysicsModule.dll
   -->
 
   <PropertyGroup>
@@ -22,10 +31,15 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
-  <!-- Resolve the managed assembly directory from a property or env var. -->
+  <!--
+    Resolve the managed assembly directory. Priority:
+      1. BSInstallDir property / BLADE_AND_SORCERY_DIR env var -> game's Managed dir
+      2. otherwise fall back to the repo-root ./libs folder (used by CI)
+  -->
   <PropertyGroup>
     <BSInstallDir Condition="'$(BSInstallDir)' == ''">$(BLADE_AND_SORCERY_DIR)</BSInstallDir>
-    <BSManagedDir>$(BSInstallDir)\BladeAndSorcery_Data\Managed</BSManagedDir>
+    <BSManagedDir Condition="'$(BSInstallDir)' != ''">$(BSInstallDir)\BladeAndSorcery_Data\Managed</BSManagedDir>
+    <BSManagedDir Condition="'$(BSInstallDir)' == ''">$(MSBuildThisFileDirectory)..\libs</BSManagedDir>
   </PropertyGroup>
 
   <ItemGroup>
