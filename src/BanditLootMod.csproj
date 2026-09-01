@@ -29,6 +29,13 @@
     <!-- Game DLLs are provided by the install; do not copy or publish them. -->
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!--
+      Demote the benign assembly-version-conflict warnings (System.Net.Http /
+      System.IO.Compression). They come from the netstandard2.1 reference
+      assemblies vs. the versions ThunderRoad bundles, and do not affect the
+      DLL that Unity loads at runtime.
+    -->
+    <MSBuildWarningsAsMessages>MSB3277</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <!--
@@ -51,6 +58,10 @@
   <ItemGroup>
     <Reference Include="ThunderRoad">
       <HintPath>$(BSManagedDir)\ThunderRoad.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(BSManagedDir)\Newtonsoft.Json.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine">
