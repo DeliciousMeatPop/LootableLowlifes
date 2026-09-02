@@ -71,9 +71,26 @@ bulk consistency.
 ### Adding weapon / ring drops
 
 Loot tables can drop anything, not just pouches. Add a `Drop` entry referencing
-any valid item id (find real ids with `tools/List-ItemIds.ps1`). Note: pointing
-at a *modded* item id makes that mod a dependency — stick to base-game ids to
-stay standalone.
+any valid item id (find real ids with `tools/List-ItemIds.ps1`, or base prefab
+addresses with `tools/Find-BaseLoot.ps1`).
+
+## Sellable treasure (optional — Baron's Bounties)
+
+The base game ships no ring/gem items to reuse (only the loot-bag prefab), so
+sellable treasure comes from **Baron's Bounties** as a **soft dependency**:
+
+- Elite enemies (tiers **T2/T3**) have a small chance to drop Baron's Bounties
+  relics instead of coins — Shard Brooch, Oswen's Spyglass, Madene Stardial,
+  Model Oron, a gem `CrystalBag`, and (rarely) King Aldaric's Crown.
+- These are Baron's Bounties' own item ids; this mod only *references* them.
+- **If Baron's Bounties isn't installed, nothing breaks** — ThunderRoad just
+  skips the missing reference, and the coin pouches (which are ours) drop as
+  normal. So the mod stays fully functional standalone; treasure is a bonus for
+  players who also run Baron's Bounties.
+
+Tune it in `tools/gen-catalog.py` via `TREASURE_T2` / `TREASURE_T3` (weights are
+relative to the coin-pouch weights in the same table). To add treasure from a
+different mod, drop its item ids in there the same way.
 
 ## Enemies covered
 

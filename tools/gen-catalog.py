@@ -7,7 +7,9 @@ hip of each base-game enemy archetype.
 """
 import json, os
 
-ROOT = "/home/user/LootableLowlifes/mod"
+# The installable mod folder lives at <repo>/LootableLowlifes (this script is
+# in <repo>/tools). Resolve it relative to the script so it works anywhere.
+ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "LootableLowlifes")
 ITEMS = os.path.join(ROOT, "Items")
 TABLES = os.path.join(ROOT, "LootTables")
 CONTAINERS = os.path.join(ROOT, "Containers")
@@ -172,11 +174,29 @@ def make_table(table_id, drops):
         "groupPath": "Lootable Lowlifes",
     }
 
+# Sellable treasure from Baron's Bounties (SOFT dependency). These are that
+# mod's own Valuable item ids; we only reference them. If Baron's Bounties is
+# not installed, ThunderRoad simply skips the missing reference at spawn time
+# (the coin pouches, which are ours, always work). Only elites (T2/T3) roll
+# treasure, and at low weight so coins stay the staple.
+TREASURE_T2 = [
+    drop("RelicSentariBrooch", 0.5),   # Shard Brooch
+    drop("RelicSentariSpyglass", 0.5), # Oswen's Spyglass
+]
+TREASURE_T3 = [
+    drop("RelicSentariBrooch", 0.5),
+    drop("RelicSentariSpyglass", 0.5),
+    drop("RelicMadluStardial", 0.5),   # Madene Stardial
+    drop("RelicKhareseOron", 0.5),     # Model Oron
+    drop("CrystalBag", 0.5),           # gem bag
+    drop("RelicCrownAldaric", 0.5),    # King Aldaric's Crown (wearable relic)
+]
+
 TABLES_DEF = {
     "LLNpcLootT0": [drop("LLPouchWorn", 5), drop("LLPouchLight", 3), drop("LLPouchCommon", 1)],
     "LLNpcLootT1": [drop("LLPouchWorn", 3), drop("LLPouchLight", 4), drop("LLPouchCommon", 2), drop("LLPouchHeavy", 1)],
-    "LLNpcLootT2": [drop("LLPouchLight", 2), drop("LLPouchCommon", 4), drop("LLPouchHeavy", 3), drop("LLPouchFat", 1)],
-    "LLNpcLootT3": [drop("LLPouchCommon", 2), drop("LLPouchHeavy", 3), drop("LLPouchFat", 3), drop("LLPouchLordly", 1)],
+    "LLNpcLootT2": [drop("LLPouchLight", 2), drop("LLPouchCommon", 4), drop("LLPouchHeavy", 3), drop("LLPouchFat", 1)] + TREASURE_T2,
+    "LLNpcLootT3": [drop("LLPouchCommon", 2), drop("LLPouchHeavy", 3), drop("LLPouchFat", 3), drop("LLPouchLordly", 1)] + TREASURE_T3,
 }
 
 # ---------------------------------------------------------------------------
